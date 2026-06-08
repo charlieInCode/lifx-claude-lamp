@@ -1,26 +1,29 @@
 {
-  "_comment": "These hooks are merged into ~/.claude/settings.json by install.sh. They are async so they never delay Claude. $HOME keeps the path identical across machines.",
+  "_comment": "Merged into ~/.claude/settings.json by install.sh. Async so they never delay Claude. $HOME keeps paths identical across machines. 2nd arg = event name (logged to hooks.log when that file exists, for debugging).",
   "hooks": {
     "SessionStart": [
-      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" idle" } ] }
+      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" idle SessionStart" } ] }
     ],
     "UserPromptSubmit": [
-      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" working" } ] }
+      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" working UserPromptSubmit" } ] }
     ],
     "PreToolUse": [
-      { "matcher": "*", "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" working" } ] }
+      { "matcher": "*", "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" working PreToolUse" } ] }
+    ],
+    "PermissionRequest": [
+      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" input PermissionRequest" } ] }
     ],
     "Notification": [
-      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" input" } ] }
+      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" input Notification" } ] }
     ],
     "Stop": [
-      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" idle" } ] }
+      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" idle Stop" } ] }
     ],
     "StopFailure": [
-      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" idle" } ] }
+      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" idle StopFailure" } ] }
     ],
     "SessionEnd": [
-      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" off" } ] }
+      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" off SessionEnd" } ] }
     ]
   }
 }

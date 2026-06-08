@@ -257,8 +257,25 @@ def scan(timeout=2.5):
     return 0
 
 
+def log_event(state, label):
+    """Append a timestamped line for debugging which hooks fire when.
+    Disabled unless LIFX_LOG is set (or the log file already exists)."""
+    path = os.environ.get("LIFX_LOG", os.path.expanduser("~/.claude/lifx_hooks/hooks.log"))
+    if not os.environ.get("LIFX_LOG") and not os.path.exists(path):
+        return
+    try:
+        from datetime import datetime
+        ts = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+        with open(path, "a") as f:
+            f.write(f"{ts}  {label or '?':<16} -> {state}\n")
+    except OSError:
+        pass
+
+
 def main():
     state = sys.argv[1] if len(sys.argv) > 1 else "idle"
+    label = sys.argv[2] if len(sys.argv) > 2 else ""  # hook event name, for logging
+    log_event(state, label)
     if state == "scan":
         return scan()
     if state == "discover":
