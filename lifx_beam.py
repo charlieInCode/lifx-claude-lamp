@@ -221,30 +221,39 @@ def scan(timeout=2.5):
     sock.settimeout(0.3)
     get_service = build_packet(2, b"")  # type 2 = GetService
     print(f"scanning {base}1-254 for LIFX lights...")
-    for i in range(1, 255):
-        try:
-            sock.sendto(get_service, (base + str(i), LIFX_PORT))
-        except OSError:
-            pass
     found = set()
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        try:
-            _, src = sock.recvfrom(1024)
-            found.add(src[0])
-        except socket.timeout:
-            continue
+    # Mesh/roaming networks drop packets, so probe in several rounds and keep
+    # listening. Stop early once we've found at least one light.
+    rounds = 4
+    for r in range(rounds):
+        for i in range(1, 255):
+            try:
+                sock.sendto(get_service, (base + str(i), LIFX_PORT))
+            except OSError:
+                pass
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            try:
+                _, src = sock.recvfrom(1024)
+                found.add(src[0])
+            except socket.timeout:
+                continue
+        if found:
+            break
     sock.close()
     found = sorted(found)
-    os.makedirs(os.path.dirname(CACHE_PATH), exist_ok=True)
-    with open(CACHE_PATH, "w") as f:
-        json.dump(found, f)
     if found:
+        os.makedirs(os.path.dirname(CACHE_PATH), exist_ok=True)
+        with open(CACHE_PATH, "w") as f:
+            json.dump(found, f)
         for f_ip in found:
             print(f"  found LIFX light at {f_ip}")
         print(f"cached {len(found)} light(s) to {CACHE_PATH}")
     else:
-        print("  no LIFX lights found (is the light on and on this subnet?)")
+        # Don't clobber a good cache on a flaky/empty scan — keep what we had.
+        kept = load_cache()
+        print("  no LIFX lights answered this scan; keeping existing cache:",
+              kept or "(empty)")
     return 0
 
 

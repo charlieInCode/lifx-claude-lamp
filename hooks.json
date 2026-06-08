@@ -16,6 +16,9 @@
     "Stop": [
       { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" idle" } ] }
     ],
+    "StopFailure": [
+      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" idle" } ] }
+    ],
     "SessionEnd": [
       { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" off" } ] }
     ]
