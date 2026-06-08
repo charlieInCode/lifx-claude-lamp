@@ -1,0 +1,23 @@
+{
+  "_comment": "These hooks are merged into ~/.claude/settings.json by install.sh. They are async so they never delay Claude. $HOME keeps the path identical across machines.",
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" idle" } ] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" working" } ] }
+    ],
+    "PreToolUse": [
+      { "matcher": "*", "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" working" } ] }
+    ],
+    "Notification": [
+      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" input" } ] }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" idle" } ] }
+    ],
+    "SessionEnd": [
+      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" off" } ] }
+    ]
+  }
+}
