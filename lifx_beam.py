@@ -33,6 +33,32 @@ import time
 LIFX_PORT = 56700
 SOURCE = 0x4C414D50  # "LAMP"
 
+CACHE_PATH = os.environ.get(
+    "LIFX_CACHE", os.path.expanduser("~/.claude/lifx_hooks/lights.json")
+)
+
+
+def primary_ip():
+    """This host's primary IPv4, or None."""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))  # no packets sent; just picks the route
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except OSError:
+        return None
+
+
+def load_cache():
+    """Previously discovered LIFX light IPs (written by `scan`)."""
+    try:
+        import json
+        with open(CACHE_PATH) as f:
+            return list(json.load(f))
+    except (OSError, ValueError):
+        return []
+
 
 def broadcast_addrs():
     """Return broadcast addresses to target.
@@ -46,16 +72,11 @@ def broadcast_addrs():
     if override:
         return [override]
     addrs = []
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))  # no packets sent; just picks the route
-        local_ip = s.getsockname()[0]
-        s.close()
+    local_ip = primary_ip()
+    if local_ip:
         parts = local_ip.split(".")
         parts[3] = "255"
         addrs.append(".".join(parts))
-    except OSError:
-        pass
     addrs.append("255.255.255.255")  # fallback
     return addrs
 
@@ -121,7 +142,10 @@ STATES = {
 
 
 def send(packets):
-    targets = broadcast_addrs()
+    # Unicast to known light IPs (reliable even where the network drops
+    # broadcast) AND broadcast (covers lights whose IP changed since the last
+    # scan). Duplicates are harmless — LIFX commands are idempotent.
+    targets = list(dict.fromkeys(load_cache() + broadcast_addrs()))
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     try:
@@ -168,8 +192,55 @@ def discover(timeout=2.0):
     return found
 
 
+def scan(timeout=2.5):
+    """Unicast-probe every host on the local /24 and cache LIFX responders.
+
+    Works even where the network drops broadcast (e.g. wireless client
+    isolation). Writes the found IPs to CACHE_PATH so plain state changes can
+    unicast to them. Re-run if a light's DHCP address changes.
+    """
+    import json
+    ip = primary_ip()
+    if not ip:
+        print("could not determine local IP")
+        return 0
+    base = ip.rsplit(".", 1)[0] + "."
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind(("", 0))
+    sock.settimeout(0.3)
+    get_service = build_packet(2, b"")  # type 2 = GetService
+    print(f"scanning {base}1-254 for LIFX lights...")
+    for i in range(1, 255):
+        try:
+            sock.sendto(get_service, (base + str(i), LIFX_PORT))
+        except OSError:
+            pass
+    found = set()
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            _, src = sock.recvfrom(1024)
+            found.add(src[0])
+        except socket.timeout:
+            continue
+    sock.close()
+    found = sorted(found)
+    os.makedirs(os.path.dirname(CACHE_PATH), exist_ok=True)
+    with open(CACHE_PATH, "w") as f:
+        json.dump(found, f)
+    if found:
+        for f_ip in found:
+            print(f"  found LIFX light at {f_ip}")
+        print(f"cached {len(found)} light(s) to {CACHE_PATH}")
+    else:
+        print("  no LIFX lights found (is the light on and on this subnet?)")
+    return 0
+
+
 def main():
     state = sys.argv[1] if len(sys.argv) > 1 else "idle"
+    if state == "scan":
+        return scan()
     if state == "discover":
         print(f"broadcasting to: {', '.join(broadcast_addrs())}")
         discover()

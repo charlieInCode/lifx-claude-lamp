@@ -53,7 +53,8 @@ print("  hooks installed for:", ", ".join(new_hooks))
 PY
 
 echo
-echo "Done. Testing the lamp..."
-python3 "$HOOK_DIR/lifx_beam.py" discover || true
+echo "Scanning the network for your LIFX light(s)..."
+python3 "$HOOK_DIR/lifx_beam.py" scan || true
 echo
-echo "Now restart Claude Code (or open /hooks once) to load the new hooks."
+echo "Done. Now restart Claude Code (or open /hooks once) to load the new hooks."
+echo "If a light's IP later changes, re-run: python3 ~/.claude/lifx_hooks/lifx_beam.py scan"
