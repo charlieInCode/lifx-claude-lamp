@@ -6,9 +6,9 @@ cloud account, no API token, no internet — everything stays on your network.
 
 | State    | Lamp                | Triggered when                         |
 |----------|---------------------|----------------------------------------|
-| idle     | solid warm mango    | session starts / Claude finishes a turn |
+| idle     | solid green         | session starts / Claude finishes a turn |
 | working  | pulsing cyan        | you submit a prompt / a tool runs      |
-| input    | solid purple        | Claude needs permission or your input  |
+| input    | solid warm mango    | Claude needs permission or your input  |
 | off       | lamp off            | session ends                           |
 
 The lamp's own firmware runs the "working" pulse, so each hook just fires a UDP

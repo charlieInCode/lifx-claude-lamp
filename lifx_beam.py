@@ -136,17 +136,17 @@ def multizone_off():
 
 # State -> ordered list of packets to send.
 STATES = {
-    # warm sunset mango, solid
+    # green, solid — done / your move
     "idle":    lambda: [multizone_off(), set_power(65535),
-                        set_color(28, 0.85, 0.55, 2700, duration=0)],
+                        set_color(120, 0.9, 0.55, 3500, duration=0)],
     # pure cyan breathe: instant cyan base, then a brightness-only pulse (same
     # hue/sat/kelvin) so no other colors appear. The firmware loops it.
     "working": lambda: [multizone_off(), set_power(65535),
                         set_color(200, 1.0, 0.45, 6500, duration=0),
                         set_waveform(200, 1.0, 1.0, 6500, period=2200)],
-    # purple, solid — needs your attention
+    # warm mango, solid — needs your attention
     "input":   lambda: [multizone_off(), set_power(65535),
-                        set_color(285, 0.9, 0.7, 3500, duration=0)],
+                        set_color(28, 0.85, 0.7, 2700, duration=0)],
     # off
     "off":     lambda: [set_power(0)],
 }
