@@ -1,5 +1,5 @@
 {
-  "_comment": "Merged into ~/.claude/settings.json by install.sh. Async so they never delay Claude. $HOME keeps paths identical across machines. 2nd arg = event name (logged to hooks.log when that file exists, for debugging).",
+  "_comment": "Merged into ~/.claude/settings.json by install.sh. Async so they never delay Claude. $HOME keeps paths identical across machines. 2nd arg = event name (logged to hooks.log when that file exists, for debugging). State model: UserPromptSubmit holds blue through the turn; PostToolUse re-asserts blue after each tool (incl. just-approved ones); PermissionRequest is the instant mango attention signal; Stop/StopFailure end on green. Notification is intentionally NOT mapped — it fires ~6s late in this CC version and caused stray mango after approvals.",
   "hooks": {
     "SessionStart": [
       { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" idle SessionStart" } ] }
@@ -7,14 +7,11 @@
     "UserPromptSubmit": [
       { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" working UserPromptSubmit" } ] }
     ],
-    "PreToolUse": [
-      { "matcher": "*", "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" working PreToolUse" } ] }
+    "PostToolUse": [
+      { "matcher": "*", "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" working PostToolUse" } ] }
     ],
     "PermissionRequest": [
       { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" input PermissionRequest" } ] }
-    ],
-    "Notification": [
-      { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" input Notification" } ] }
     ],
     "Stop": [
       { "hooks": [ { "type": "command", "async": true, "command": "python3 \"$HOME/.claude/lifx_hooks/lifx_beam.py\" idle Stop" } ] }

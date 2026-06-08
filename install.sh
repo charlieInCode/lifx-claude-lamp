@@ -39,11 +39,15 @@ def is_lifx(entry):
             return True
     return False
 
+# First scrub lifx entries from EVERY event (so events we no longer use, e.g.
+# a previously-installed PreToolUse, get cleaned up). Then add the current set.
+for event in list(hooks.keys()):
+    hooks[event] = [e for e in hooks[event] if not is_lifx(e)]
+    if not hooks[event]:
+        del hooks[event]
+
 for event, entries in new_hooks.items():
-    existing = hooks.get(event, [])
-    # drop any prior lifx entries so re-running stays idempotent
-    existing = [e for e in existing if not is_lifx(e)]
-    hooks[event] = existing + entries
+    hooks[event] = hooks.get(event, []) + entries
 
 with open(settings_path, "w") as f:
     json.dump(settings, f, indent=2)
