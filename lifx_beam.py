@@ -127,15 +127,26 @@ def set_waveform(deg, sat, bri, kelvin=3500, period=1600, cycles=1e9,
     return build_packet(SET_WAVEFORM, payload)
 
 
+def multizone_off():
+    """SetMultiZoneEffect type=OFF — stop any firmware Move/scene effect on a
+    multizone device (the Beam) so a single solid color actually sticks."""
+    payload = struct.pack("<IBHIQII", 0, 0, 0, 0, 0, 0, 0) + b"\x00" * 32
+    return build_packet(508, payload)
+
+
 # State -> ordered list of packets to send.
 STATES = {
     # warm sunset mango, solid
-    "idle":    lambda: [set_power(65535), set_color(28, 0.85, 0.55, 2700)],
-    # cyan breathe — the firmware loops this until the next state is sent
-    "working": lambda: [set_power(65535), set_color(200, 0.7, 0.35, 4000, 200),
-                        set_waveform(200, 0.85, 0.95, 6500)],
+    "idle":    lambda: [multizone_off(), set_power(65535),
+                        set_color(28, 0.85, 0.55, 2700, duration=0)],
+    # pure cyan breathe: instant cyan base, then a brightness-only pulse (same
+    # hue/sat/kelvin) so no other colors appear. The firmware loops it.
+    "working": lambda: [multizone_off(), set_power(65535),
+                        set_color(200, 1.0, 0.45, 6500, duration=0),
+                        set_waveform(200, 1.0, 1.0, 6500, period=2200)],
     # purple, solid — needs your attention
-    "input":   lambda: [set_power(65535), set_color(285, 0.9, 0.7, 3500)],
+    "input":   lambda: [multizone_off(), set_power(65535),
+                        set_color(285, 0.9, 0.7, 3500, duration=0)],
     # off
     "off":     lambda: [set_power(0)],
 }
